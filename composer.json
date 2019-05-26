@@ -1,0 +1,6 @@
+{
+    "require": {
+        "zendframework/zend-diactoros": "^1.8",
+        "zendframework/zend-stratigility": "^3.0"
+    }
+}
