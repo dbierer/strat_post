@@ -24,26 +24,35 @@ use Zend\Stratigility\MiddlewarePipe;
 use function Zend\Stratigility\middleware;
 use function Zend\Stratigility\path;
 
-// set up the pipe and server
-$app = new MiddlewarePipe();
-$server = Server::createServer([$app, 'handle'], $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES);
+try {
+    // set up the pipe and server
+    $app = new MiddlewarePipe();
+    $server = Server::createServer([$app, 'handle'], $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES);
 
-// attach middleware to the pipe in $order
-// NOTE the use of a linked list: $order is linked to $middleware
-foreach ($order as $key) {
-    if (isset($middleware[$key]['path'])) {
-        $app->pipe(path($middleware[$key]['path'], middleware($middleware[$key]['func'])));
-    } else {
-        $app->pipe(middleware($middleware[$key]['func']));
+    // attach middleware to the pipe in $order
+    // NOTE the use of a linked list: $order is linked to $middleware
+    foreach ($order as $key) {
+        if (isset($middleware[$key]['path'])) {
+            $app->pipe(path($middleware[$key]['path'], middleware($middleware[$key]['func'])));
+        } else {
+            $app->pipe(middleware($middleware[$key]['func']));
+        }
     }
+
+    // 404 handler
+    $app->pipe(new NotFoundHandler(function () {
+        return new Response();
+    }));
+
+    // end of the pipe
+    $server->listen(function ($req, $res) {
+        return $res;
+    });
+
+} catch (Throwable $e) {
+
+    $error = ['error' => ['file' => __FILE__, 'class' => get_class($e), 'message' => $e->getMessage()]];
+    $response = (new Response())->withStatus(500, 'Internal Server Error');
+    $response->getBody()->write(json_encode($error));
+
 }
-
-// 404 handler
-$app->pipe(new NotFoundHandler(function () {
-    return new Response();
-}));
-
-// end of the pipe
-$server->listen(function ($req, $res) {
-    return $res;
-});
