@@ -20,7 +20,7 @@
   * If running Nginx use the equivalent rewrite rules in the main config file
 
 ## Table Descriptions
-* Geoname Table Fields:
+### Geoname Table Fields:
 | Field             | Description |
 | ------------------|-------------------------------- |
 | geonameid         | integer id of record in geonames database |
@@ -44,7 +44,7 @@
 | modification_date | date of last modification in yyyy-MM-dd format |
 | postal_code       | varchar(20) |
 
-* Postcode Table Fields:
+### Postcode Table Fields:
 | Field             | Description |
 | ------------------|---------------------------------------- |
 | country_code      | iso country code, 2 characters |
