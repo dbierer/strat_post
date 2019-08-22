@@ -59,4 +59,3 @@
 | latitude          | estimated latitude (wgs84) |
 | longitude         | estimated longitude (wgs84) |
 | accuracy          | accuracy of lat/lng from 1=estimated, 4=geonameid, 6=centroid of addresses or shape |
-|
