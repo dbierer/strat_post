@@ -2,7 +2,7 @@
 // stratigility middleware "library"
 
 // class needed
-use Zend\Diactoros\Response;
+use Laminas\Diactoros\Response;
 
 // init constants
 define('LOG_FILE', __DIR__ . '/../logs/access.log');
@@ -52,7 +52,7 @@ try {
 $response = new Response();
 header('Content-Type: application/json');
 
-$middleware = [
+return [
     // middleware: writes to a log file; does not return a response
     'log' => [
         'path' => FALSE,

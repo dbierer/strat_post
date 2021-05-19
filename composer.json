@@ -1,6 +1,8 @@
 {
     "require": {
-        "zendframework/zend-diactoros": "^1.8",
-        "zendframework/zend-stratigility": "^3.0"
+        "psr/http-message": "^1.0",
+        "laminas/laminas-diactoros": "^2.6",
+        "laminas/laminas-httphandlerrunner": "^1.4",
+        "laminas/laminas-stratigility": "^3.3"
     }
 }

@@ -8,51 +8,60 @@
  * 5. From your browser enter this URL: "http://localhost:9999"
  */
 
-// env
+// autoloader
 require __DIR__ . '/../vendor/autoload.php';
-require __DIR__ . '/../middleware/library.php';
 
 // main classes needed
-use Zend\Diactoros\Response;
-use Zend\Diactoros\Server;
-use Zend\Stratigility\Middleware\NotFoundHandler;
-use Zend\Stratigility\MiddlewarePipe;
+use Laminas\Diactoros\Response;
+use Laminas\Diactoros\ResponseFactory;
+use Laminas\Diactoros\ServerRequestFactory;
+use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
+use Laminas\HttpHandlerRunner\RequestHandlerRunner;
+use Laminas\Stratigility\Middleware\NotFoundHandler;
+use Laminas\Stratigility\MiddlewarePipe;
+
+// Load the middleware
+$middleware = require __DIR__ . '/../middleware/library.php';
 
 // NOTE: these are *functions* which provide convient wrappers:
 //       "middleware()" produces middleware from anonymous functions
 //       "path()" addes routing and requires that you call "middleware()" as 2nd argument
-use function Zend\Stratigility\middleware;
-use function Zend\Stratigility\path;
+use function Laminas\Stratigility\middleware;
+use function Laminas\Stratigility\path;
 
 try {
-    // set up the pipe and server
-    $app = new MiddlewarePipe();
-    $server = Server::createServer([$app, 'handle'], $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES);
+
+    // set up the pipeline and server
+    $pipeline = new MiddlewarePipe();
 
     // attach middleware to the pipe in $order
     // NOTE the use of a linked list: $order is linked to $middleware
-    foreach ($order as $key) {
-        if (isset($middleware[$key]['path'])) {
-            $app->pipe(path($middleware[$key]['path'], middleware($middleware[$key]['func'])));
-        } else {
-            $app->pipe(middleware($middleware[$key]['func']));
+    foreach ($key as $val)
+        $pipeline->pipe(path($val['path'], middleware($val['func'])));
+
+    $pipeline->pipe(new NotFoundHandler(function () { return new Response(); }));
+    $server = new RequestHandlerRunner(
+        $pipeline,
+        new SapiEmitter(),
+        static function () {
+            return ServerRequestFactory::fromGlobals();
+        },
+        static function (\Throwable $e) {
+            $message = ['error' => ['file' => __FILE__, 'class' => get_class($e), 'message' => $e->getMessage()]];
+            error_log(__FILE__ . ':' . json_encode($message));
+            $response = (new ResponseFactory())->createResponse(500);
+            $response->getBody()->write('Internal Error');
+            return $response;
         }
-    }
-
-    // 404 handler
-    $app->pipe(new NotFoundHandler(function () {
-        return new Response();
-    }));
-
-    // end of the pipe
-    $server->listen(function ($req, $res) {
-        return $res;
-    });
+    );
+    $server->run();
 
 } catch (Throwable $e) {
 
-    $error = ['error' => ['file' => __FILE__, 'class' => get_class($e), 'message' => $e->getMessage()]];
-    $response = (new Response())->withStatus(500, 'Internal Server Error');
-    $response->getBody()->write(json_encode($error));
+    $message = ['error' => ['file' => __FILE__, 'class' => get_class($e), 'message' => $e->getMessage()]];
+    error_log(__FILE__ . ':' . json_encode($message));
+    $response = (new ResponseFactory())->createResponse(500);
+    $response->getBody()->write('Internal Error');
+    return $response;
 
 }
