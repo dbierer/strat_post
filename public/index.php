@@ -1,12 +1,10 @@
 <?php
-// TO RUN THIS DEMO:
-/*
- * 1. Run "composer update" to install stratigility, etc.
- * 2. Create database `geonames`
- * 3. Run ../data/install_db.php to download source data and populate `geoname` table
- * 4. From this directory run this command: "php -S localhost:9999 -t public"
- * 5. From your browser enter this URL: "http://localhost:9999"
- */
+// TO RUN THIS DEMO:  /path/to/project/admin.sh up
+
+// error reporting
+ini_set('error_reporting', E_ALL);
+ini_set('display_errors', 0);
+ini_set('error_log', __DIR__ . '/../logs/error.log');
 
 // autoloader
 require __DIR__ . '/../vendor/autoload.php';
@@ -36,7 +34,7 @@ try {
 
     // attach middleware to the pipe in $order
     // NOTE the use of a linked list: $order is linked to $middleware
-    foreach ($key as $val)
+    foreach ($middleware as $val)
         $pipeline->pipe(path($val['path'], middleware($val['func'])));
 
     $pipeline->pipe(new NotFoundHandler(function () { return new Response(); }));
@@ -47,10 +45,11 @@ try {
             return ServerRequestFactory::fromGlobals();
         },
         static function (\Throwable $e) {
-            $message = ['error' => ['file' => __FILE__, 'class' => get_class($e), 'message' => $e->getMessage()]];
-            error_log(__FILE__ . ':' . json_encode($message));
             $response = (new ResponseFactory())->createResponse(500);
-            $response->getBody()->write('Internal Error');
+            $response->getBody()->write(sprintf(
+                'An error occurred: %s',
+                $e->getMessage
+            ));
             return $response;
         }
     );
@@ -58,8 +57,8 @@ try {
 
 } catch (Throwable $e) {
 
-    $message = ['error' => ['file' => __FILE__, 'class' => get_class($e), 'message' => $e->getMessage()]];
-    error_log(__FILE__ . ':' . json_encode($message));
+    $message = ['error' => ['file' => basename(__FILE__), 'class' => get_class($e), 'message' => $e->getMessage()]];
+    error_log(var_export($message, TRUE));
     $response = (new ResponseFactory())->createResponse(500);
     $response->getBody()->write('Internal Error');
     return $response;

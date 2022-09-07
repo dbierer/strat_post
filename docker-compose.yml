@@ -1,0 +1,23 @@
+version: "3"
+services:
+  strat_post:
+    container_name: strat_post
+    hostname: strat_post
+    image: unlikelysource/strat_post
+    volumes:
+     - .:/home
+    ports:
+     - 8888:80
+    build: ./config
+    restart: always
+    command: lfphp --mysql --apache --phpfpm
+    networks:
+      strat_post_net:
+        ipv4_address: 10.50.10.10
+
+networks:
+  strat_post_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: "10.50.10.0/24"

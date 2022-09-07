@@ -1,8 +1,8 @@
 {
     "require": {
         "psr/http-message": "^1.0",
-        "laminas/laminas-diactoros": "^2.6",
-        "laminas/laminas-httphandlerrunner": "^1.4",
-        "laminas/laminas-stratigility": "^3.3"
+        "laminas/laminas-diactoros": "*",
+        "laminas/laminas-httphandlerrunner": "*",
+        "laminas/laminas-stratigility": "*"
     }
 }
